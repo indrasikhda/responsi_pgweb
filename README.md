@@ -32,7 +32,7 @@ Sumber Data :
 3. Data Spasial: Data shapefile Batas Administrasi Kabupaten/Kota Provinsi Sulawesi
 
 <img width="1899" height="865" alt="image" src="https://github.com/user-attachments/assets/a5dd043b-9fda-481b-bd7a-9d22b2de493b" />
-<img width="1900" height="866" alt="Screenshot 2025-12-21 154044" src="https://github.com/user-attachments/assets/cd3d5831-2d28-47ca-85ed-63f99ccea358" />
+<img width="1900" height="864" alt="image" src="https://github.com/user-attachments/assets/7d2c8adb-7e35-4acf-9918-e3f77cf4c572" />
 <img width="1900" height="866" alt="image" src="https://github.com/user-attachments/assets/8e1c31d8-cfab-466d-835b-f09456c52e76" />
 
 
