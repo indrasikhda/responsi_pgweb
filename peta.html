@@ -9,13 +9,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
     <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         /* CSS UTAMA */
         body {
-            /* UPDATE DISINI: Menggunakan gambar background yang sama dengan index.html */
             background-image: url('img/line-design-electric-utilities-in-wisconsin-hero-2048x1280.jpeg');
             background-size: cover;
             background-position: center;
@@ -27,9 +27,9 @@
 
         /* GLASSMORPHISM STYLE */
         .glass-effect {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
@@ -55,16 +55,19 @@
             font-weight: 600;
         }
         #map {
-            height: 600px;
+            height: 550px;
             width: 100%;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        
+        /* Tabel Style */
         .table-glass { color: #fff; border-color: rgba(255, 255, 255, 0.1); }
         .table-glass thead th { background-color: rgba(255, 255, 255, 0.1); color: #fff; border-bottom: 2px solid rgba(255, 255, 255, 0.2); }
         .table-glass tbody td { border-color: rgba(255, 255, 255, 0.1); }
         .table-hover tbody tr:hover { background-color: rgba(255, 255, 255, 0.2); color: #fff; }
         
+        /* Legenda Style */
         .info-legend {
             @extend .glass-effect;
             padding: 12px;
@@ -73,6 +76,7 @@
             color: #fff;
         }
         .info-legend i { width: 20px; height: 20px; float: left; margin-right: 8px; border-radius: 3px; }
+        .info-legend i.garis-batas { background: transparent !important; border: 2px solid #ff3333; }
         
         /* Helper CSS */
         .navbar-glass, .card-glass, .info-legend {
@@ -82,11 +86,31 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
+
+        /* Style untuk Kolom Pencarian */
+        .search-container input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 20px 0 0 20px;
+        }
+        .search-container input::placeholder { color: rgba(255, 255, 255, 0.6); }
+        .search-container input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: none;
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        .search-container button {
+            border-radius: 0 20px 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-left: none;
+        }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-dark navbar-glass">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-glass">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="index.html">
                 <i class="fas fa-bolt me-2 text-warning"></i>
@@ -94,26 +118,64 @@
                     <b>ElectroMap</b> <span class="fw-light">| Monitoring Energi</span>
                 </div>
             </a>
-            <a href="index.html" class="btn btn-sm btn-outline-light rounded-pill px-3">
-                <i class="fas fa-home me-1"></i> Home
-            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                </ul>
+
+                <form class="d-flex search-container" onsubmit="cariWilayah(event)">
+                    <input class="form-control" type="search" id="inputCari" list="listWilayah" placeholder="Cari Kabupaten/Kota..." aria-label="Search">
+                    <datalist id="listWilayah">
+                        </datalist>
+                    <button class="btn btn-success" type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
         </div>
     </nav>
 
     <div class="container">
-        <div class="card card-glass">
-            <div class="card-header-glass d-flex justify-content-between align-items-center">
-                <h6 class="m-0"><i class="fas fa-map-marked-alt me-2"></i>Peta Sebaran Elektrifikasi</h6>
-                <small class="text-light opacity-75">Teknologi: WMS Geoserver & Leaflet</small>
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card card-glass">
+                    <div class="card-header-glass d-flex justify-content-between align-items-center">
+                        <h6 class="m-0"><i class="fas fa-map-marked-alt me-2"></i>Peta Sebaran Elektrifikasi</h6>
+                        <small class="text-light opacity-75">WMS GeoServer & Leaflet</small>
+                    </div>
+                    <div class="card-body p-2">
+                        <div id="map"></div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div id="map"></div>
+
+            <div class="col-lg-4">
+                <div class="card card-glass h-100">
+                    <div class="card-header-glass">
+                        <h6 class="m-0"><i class="fas fa-chart-pie me-2"></i>Statistik Wilayah</h6>
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                        <div style="width: 100%; max-width: 300px;">
+                            <canvas id="chartRasio"></canvas>
+                        </div>
+                        <hr style="width: 80%; border-color: rgba(255,255,255,0.2); margin: 20px 0;">
+                        <p class="small text-white-50">
+                            Grafik proporsi jumlah Kabupaten/Kota berdasarkan klasifikasi rasio elektrifikasi.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="card card-glass">
+        <div class="card card-glass mt-2">
             <div class="card-header-glass">
-                <h6 class="m-0"><i class="fas fa-database me-2"></i>Data</h6>
+                <h6 class="m-0"><i class="fas fa-database me-2"></i>Data per Kabupaten/Kota</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -121,10 +183,10 @@
                         <thead>
                             <tr>
                                 <th>Wilayah</th>
-                                <th>PLN</th>
-                                <th>Non-PLN</th>
-                                <th>Bukan Listrik</th>
-                                <th>Rasio (%)</th>
+                                <th class="text-end">PLN</th>
+                                <th class="text-end">Non-PLN</th>
+                                <th class="text-end">Bukan Listrik</th>
+                                <th class="text-center">Rasio (%)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -134,26 +196,29 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // --- SETUP MAP ---
+        // --- 1. SETUP MAP ---
         var map = L.map('map', {
             center: [-4.0, 122.0],
             zoom: 7,
             fullscreenControl: true
         });
 
-        // BASEMAPS
+        // Global Variable untuk Layer agar bisa diakses fungsi pencarian
+        var layerAnalisis; 
+
+        // Basemaps
         var darkBasemap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' });
 
-        // --- 4. GEOSERVER WMS ---
+        // WMS Layer GeoServer
         var wmsLayer = L.tileLayer.wms('http://localhost:8080/geoserver/webgis_sultra/wms', {
             layers: 'webgis_sultra:Merge_sulawesi_tenggara',
             format: 'image/png',
@@ -162,51 +227,127 @@
             attribution: 'GeoServer WMS'
         });
 
-        // FUNGSI WARNA & STYLE
+        // --- 2. FUNGSI UTILITY ---
         function getColor(d) {
-            return d > 95 ? '#1a9850' : d > 90 ? '#91cf60' : d > 75 ? '#fee08b' : d > 50 ? '#fc8d59' : '#d73027'; 
+            return d > 95 ? '#1a9850' : 
+                   d > 90 ? '#91cf60' : 
+                   d > 75 ? '#fee08b' : 
+                   d > 50 ? '#fc8d59' : 
+                            '#d73027'; 
         }
+        
         function styleAnalisis(feature) {
             return { fillColor: feature.properties.warna_isi || '#444', weight: 1.5, opacity: 1, color: '#fff', fillOpacity: 0.8 };
         }
 
-        // FUNGSI NORMALISASI NAMA (Pembersih)
-        function normalisasiNama(teks) {
-            if (!teks) return "";
-            return teks.toLowerCase()
-                       .replace("kabupaten", "")
-                       .replace("kab.", "")
-                       .replace("kota", "")
-                       .trim();
+        function styleMerah(feature) {
+            return { fillColor: 'transparent', weight: 2, opacity: 1, color: '#ff3333', fillOpacity: 0 };
         }
 
-        // LOAD DATA
+        function normalisasiNama(teks) {
+            if (!teks) return "";
+            return teks.toLowerCase().replace("kabupaten", "").replace("kab.", "").replace("kota", "").trim();
+        }
+
+        // --- 3. FUNGSI PENCARIAN WILAYAH (BARU) ---
+        function cariWilayah(e) {
+            e.preventDefault(); // Mencegah reload halaman
+            let keyword = document.getElementById('inputCari').value;
+            let keywordBersih = normalisasiNama(keyword);
+            
+            if(!keyword) return;
+            
+            let ketemu = false;
+
+            // Cari di dalam layer GeoJSON
+            layerAnalisis.eachLayer(function(layer) {
+                let namaWilayah = layer.feature.properties.NAMOBJ || layer.feature.properties.WADMKK;
+                let namaWilayahBersih = normalisasiNama(namaWilayah);
+
+                // Jika nama cocok
+                if (namaWilayahBersih === keywordBersih) {
+                    map.fitBounds(layer.getBounds()); // Zoom ke wilayah
+                    layer.openPopup(); // Buka Popup
+                    ketemu = true;
+                }
+            });
+
+            if (!ketemu) {
+                alert("Wilayah '" + keyword + "' tidak ditemukan di peta.");
+            }
+        }
+
+        // --- 4. LOAD DATA & RENDER ---
         fetch('api.php')
             .then(res => res.json())
             .then(dataListrik => {
                 
-                // ISI TABEL
+                // A. ISI TABEL, STATISTIK, & DATALIST PENCARIAN
                 let tbody = document.querySelector('#tabel-listrik tbody');
+                let datalist = document.getElementById('listWilayah'); // Ambil elemen datalist
                 tbody.innerHTML = '';
+                datalist.innerHTML = ''; // Kosongkan dulu
+
+                let stats = { sb: 0, b: 0, c: 0, k: 0, sk: 0 };
+
                 dataListrik.forEach(row => {
-                    let badge = row.rasio_elektrifikasi > 90 ? 'success' : (row.rasio_elektrifikasi > 75 ? 'warning' : 'danger');
-                    tbody.innerHTML += `<tr><td class="fw-bold">${row.nama_kabkota}</td><td>${row.pln}</td><td>${row.non_pln}</td><td>${row.bukan_listrik}</td><td><span class="badge bg-${badge} text-dark">${row.rasio_elektrifikasi}%</span></td></tr>`;
+                    // Update Statistik
+                    let r = parseFloat(row.rasio_elektrifikasi);
+                    if (r > 95) stats.sb++;
+                    else if (r > 90) stats.b++;
+                    else if (r > 75) stats.c++;
+                    else if (r > 50) stats.k++;
+                    else stats.sk++;
+
+                    // Render Tabel
+                    let badge = r > 90 ? 'success' : (r > 75 ? 'warning' : 'danger');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-bold">${row.nama_kabkota}</td>
+                            <td class="text-end">${row.pln}</td>
+                            <td class="text-end">${row.non_pln}</td>
+                            <td class="text-end">${row.bukan_listrik}</td>
+                            <td class="text-center"><span class="badge bg-${badge} text-dark">${row.rasio_elektrifikasi}%</span></td>
+                        </tr>`;
+
+                    // ISI OPSI PENCARIAN (AUTOCOMPLETE)
+                    // Menambahkan <option value="Nama Kota"> ke dalam datalist
+                    let option = document.createElement('option');
+                    option.value = row.nama_kabkota;
+                    datalist.appendChild(option);
                 });
 
-                // AMBIL PETA JSON
+                // B. RENDER GRAFIK
+                const ctx = document.getElementById('chartRasio').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Sangat Baik', 'Baik', 'Cukup', 'Kurang', 'Sangat Kurang'],
+                        datasets: [{
+                            data: [stats.sb, stats.b, stats.c, stats.k, stats.sk],
+                            backgroundColor: ['#1a9850', '#91cf60', '#fee08b', '#fc8d59', '#d73027'],
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: 'white', boxWidth: 12, padding: 15, font: {size: 11} } }
+                        }
+                    }
+                });
+
+                // C. AMBIL PETA JSON
                 fetch('peta.json')
                     .then(res => res.json())
                     .then(geojsonData => {
-                        
-                        // Join Data dengan Normalisasi
                         geojsonData.features.forEach(feature => {
                             let namaAsliPeta = feature.properties.NAMOBJ || feature.properties.WADMKK || feature.properties.KAB_KOTA;
-                            
                             if(namaAsliPeta) {
                                 let namaPetaBersih = normalisasiNama(namaAsliPeta);
                                 let dataCocok = dataListrik.find(d => {
-                                    let namaDbBersih = normalisasiNama(d.nama_kabkota);
-                                    return namaDbBersih === namaPetaBersih;
+                                    return normalisasiNama(d.nama_kabkota) === namaPetaBersih;
                                 });
 
                                 if(dataCocok) {
@@ -215,26 +356,33 @@
                                         <div style="color:#333">
                                             <strong>${dataCocok.nama_kabkota}</strong><hr style="margin:5px 0">
                                             Rasio: <b>${dataCocok.rasio_elektrifikasi}%</b><br>
-                                            <small>PLN: ${dataCocok.pln}</small>
+                                            <small>PLN: ${dataCocok.pln} KK</small>
                                         </div>`;
                                 }
                             }
                         });
 
-                        var layerAnalisis = L.geoJSON(geojsonData, {
+                        // 1. Layer Analisis (Disimpan ke variabel Global layerAnalisis)
+                        layerAnalisis = L.geoJSON(geojsonData, {
                             style: styleAnalisis,
-                            onEachFeature: function(f, l) { l.bindPopup(f.properties.popupInfo || "Data Tidak Ditemukan: " + (f.properties.NAMOBJ || "Wilayah")); }
+                            onEachFeature: function(f, l) { l.bindPopup(f.properties.popupInfo || "Data Tidak Ditemukan: " + (f.properties.NAMOBJ || "-")); }
                         }).addTo(map);
 
-                        // KONTROL LAYER
+                        // 2. Layer Batas Merah
+                        var layerMerah = L.geoJSON(geojsonData, {
+                            style: styleMerah,
+                            onEachFeature: function(f, l) { l.bindPopup("Batas Admin: " + (f.properties.NAMOBJ || "-")); }
+                        });
+
+                        // Kontrol Layer
                         var baseMaps = { "Mode Gelap": darkBasemap, "Mode Terang": osmLayer };
                         var overlayMaps = {
-                            "Analisis Elektrifikasi (Interaktif)": layerAnalisis,
+                            "Analisis Elektrifikasi": layerAnalisis,
                             "Geoserver WMS": wmsLayer
                         };
                         L.control.layers(baseMaps, overlayMaps).addTo(map);
 
-                        // LEGENDA
+                        // Legenda
                         var legend = L.control({position: 'bottomright'});
                         legend.onAdd = function (map) {
                             var div = L.DomUtil.create('div', 'info-legend');
@@ -244,6 +392,8 @@
                             div.innerHTML += '<div><i style="background:#fee08b"></i> 75% - 90% (Cukup)</div>';
                             div.innerHTML += '<div><i style="background:#fc8d59"></i> 50% - 75% (Kurang)</div>';
                             div.innerHTML += '<div><i style="background:#d73027"></i> < 50% (Sangat Kurang)</div>';
+                            div.innerHTML += '<hr style="margin:8px 0; border-color:rgba(255,255,255,0.3)">';
+                            div.innerHTML += '<div><i class="garis-batas"></i> Batas Admin</div>';
                             return div;
                         };
                         legend.addTo(map);
