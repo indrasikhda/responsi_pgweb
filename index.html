@@ -11,7 +11,7 @@
     <style>
         /* --- 1. BACKGROUND & FONT --- */
         body {
-            /* UPDATE DISINI: Menggunakan gambar menara listrik yang baru */
+            /* Background Gambar Menara Listrik */
             background-image: url('img/line-design-electric-utilities-in-wisconsin-hero-2048x1280.jpeg');
             background-size: cover;
             background-position: center;
@@ -34,7 +34,7 @@
             padding: 40px;
         }
 
-        /* CSS KHUSUS UNTUK MODAL POPUP AGAR GLASS JUGA */
+        /* CSS KHUSUS UNTUK MODAL POPUP */
         .modal-content {
             background: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(10px);
@@ -87,7 +87,7 @@
             color: white;
         }
 
-        /* --- FEATURE BOX UPDATE --- */
+        /* --- FEATURE BOX --- */
         .feature-box {
             text-align: center;
             padding: 20px;
@@ -134,7 +134,7 @@
                     
                     <p class="lead text-white-50 mb-5 mx-auto" style="max-width: 600px;">
                         Platform interaktif untuk memetakan dan memantau ketersediaan energi listrik (PLN & Non-PLN) 
-                        di seluruh Kabupaten/Kota berbasis data spasial.
+                        di seluruh Kabupaten/Kota di Sulawesi Tenggara berbasis data spasial terkini.
                     </p>
 
                     <a href="peta.html" class="btn btn-start">
@@ -172,7 +172,7 @@
     </div>
 
     <footer class="text-center py-3 text-white-50" style="background: rgba(0,0,0,0.5);">
-        <small>&copy; 2025 Indrasto Ikhda Nuhaad | Mahasiswa Sistem Informasi Geografis UGM</small>
+        <small>&copy; 2025 Indrasto Ikhda Nuhaad | Sistem Informasi Geografis UGM</small>
     </footer>
 
 
@@ -204,14 +204,30 @@
                 </div>
                 <div class="modal-body">
                     <p>WebGIS ini melakukan analisis klasifikasi visual (Choropleth Map) berdasarkan <b>Rasio Elektrifikasi</b>:</p>
+                    
                     <div class="d-flex align-items-center mb-2">
-                        <span class="badge bg-success me-2">> 90%</span> <small>Zona Hijau (Sangat Baik)</small>
+                        <span class="badge me-2" style="background-color: #1a9850; color: white;">> 95%</span> 
+                        <small>Sangat Baik</small>
                     </div>
+
                     <div class="d-flex align-items-center mb-2">
-                        <span class="badge bg-warning text-dark me-2">75% - 90%</span> <small>Zona Kuning (Cukup)</small>
+                        <span class="badge me-2" style="background-color: #91cf60; color: black;">90% - 95%</span> 
+                        <small>Baik</small>
                     </div>
+
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge me-2" style="background-color: #fee08b; color: black;">75% - 90%</span> 
+                        <small>Cukup</small>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge me-2" style="background-color: #fc8d59; color: black;">50% - 75%</span> 
+                        <small>Kurang</small>
+                    </div>
+
                     <div class="d-flex align-items-center">
-                        <span class="badge bg-danger me-2">< 75%</span> <small>Zona Merah (Perlu Perhatian)</small>
+                        <span class="badge me-2" style="background-color: #d73027; color: white;">< 50%</span> 
+                        <small>Sangat Kurang</small>
                     </div>
                 </div>
             </div>
